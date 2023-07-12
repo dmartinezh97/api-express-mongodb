@@ -2,7 +2,22 @@ const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const fs = require('fs');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const { id } = req.user
+    const path = `./uploads/${id}`
+
+    fs.mkdirSync(path, { recursive: true })
+    cb(null, path)
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); //new Date().toISOString() + "-" + 
+    // cb(null, file.originalname)
+  }
+})
+const upload = multer({ storage: storage });
 
 const docsValidation = require('../../validations/docs.validation');
 const docsController = require('../../controllers/docs.controller');
@@ -12,6 +27,10 @@ const router = express.Router();
 router
   .route('/new')
   .post(auth('docs'), upload.single('file'), validate(docsValidation.createDoc), docsController.createDoc);
+
+router
+  .route('/ask')
+  .post(auth('docs'), validate(docsValidation.askDoc), docsController.askDoc);
 
 module.exports = router;
 

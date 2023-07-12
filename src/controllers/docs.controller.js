@@ -5,10 +5,17 @@ const catchAsync = require('../utils/catchAsync');
 const { docsService } = require('../services');
 
 const createDoc = catchAsync(async (req, res) => {
-  console.log("BODY:", req.file);
-  res.status(httpStatus.CREATED).send();
-  // const newDoc = await docsService.createDoc(req.body) // userService.createUser(req.body);
-  // res.status(httpStatus.CREATED).send(newDoc);
+  const { name } = req.body
+  const { id } = req.user
+  const path = `./uploads/${id}`
+
+  const newDoc = await docsService.createDocPDF(name, path)
+  res.status(httpStatus.CREATED).send(newDoc);
+});
+
+const askDoc = catchAsync(async (req, res) => {
+  const result = await docsService.askPDF(req)
+  res.status(httpStatus.CREATED).send(result);
 });
 
 // const getUsers = catchAsync(async (req, res) => {
@@ -38,6 +45,7 @@ const createDoc = catchAsync(async (req, res) => {
 
 module.exports = {
   createDoc,
+  askDoc,
   // getUsers,
   // getUser,
   // updateUser,

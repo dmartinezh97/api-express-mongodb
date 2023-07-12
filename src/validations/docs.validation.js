@@ -8,6 +8,16 @@ const createDoc = {
   file: Joi.any().required(),
 };
 
+const askDoc = {
+  body: Joi.object().keys({
+    collection_name: Joi.string().optional(),
+    question: Joi.string().optional(),
+    mode: Joi.string().optional(),
+    initial_prompt: Joi.string().optional(),
+  }),
+};
+
 module.exports = {
   createDoc,
+  askDoc,
 };
