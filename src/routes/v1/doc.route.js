@@ -6,11 +6,15 @@ const fs = require('fs');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    const { title } = req.body
     const { id } = req.user
-    const path = `./uploads/${id}`
 
-    fs.mkdirSync(path, { recursive: true })
-    cb(null, path)
+    collection_name = convertirTituloASlug(title)
+
+    const pathUserWithCollection = getUserPathWithCollection(id, collection_name)
+
+    fs.mkdirSync(pathUserWithCollection, { recursive: true })
+    cb(null, pathUserWithCollection)
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname); //new Date().toISOString() + "-" + 
@@ -19,8 +23,10 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage });
 
-const docsValidation = require('../../validations/docs.validation');
-const docsController = require('../../controllers/docs.controller');
+const docsValidation = require('../../validations/doc.validation');
+const docsController = require('../../controllers/doc.controller');
+const { getUserPathWithCollection } = require('../../utils/generatePath');
+const { convertirTituloASlug } = require('../../utils/stringUtils');
 
 const router = express.Router();
 
@@ -31,6 +37,11 @@ router
 router
   .route('/ask')
   .post(auth('docs'), validate(docsValidation.askDoc), docsController.askDoc);
+
+router
+  .route('/')
+  .get(auth('getDocs'), docsController.getDocs);
+
 
 module.exports = router;
 

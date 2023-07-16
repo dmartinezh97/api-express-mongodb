@@ -10,3 +10,7 @@ yarn-error.log
 
 # Code coverage
 coverage
+
+# Uploads / index
+data/indexes/*
+data/uploads/*

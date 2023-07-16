@@ -3,27 +3,31 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { docsService } = require('../services');
+const { getUserPath } = require('../utils/generatePath');
+const { limpiarEspacios, randomString } = require('../utils/stringUtils');
 
 const createDoc = catchAsync(async (req, res) => {
-  const { name } = req.body
-  const { id } = req.user
-  const path = `./uploads/${id}`
+  const { title } = req.body
+  const { id: user_id } = req.user
 
-  const newDoc = await docsService.createDocPDF(name, path)
+  const newDoc = await docsService.createDocPDF(user_id, title)
   res.status(httpStatus.CREATED).send(newDoc);
 });
 
 const askDoc = catchAsync(async (req, res) => {
-  const result = await docsService.askPDF(req)
+  const { collection_name, question } = req.body;
+  const { id } = req.user
+  const mode = 'pair_programming'
+  const initial_prompt = ''
+
+  const result = await docsService.askPDF(id, collection_name, question, mode, initial_prompt)
   res.status(httpStatus.CREATED).send(result);
 });
 
-// const getUsers = catchAsync(async (req, res) => {
-//   const filter = pick(req.query, ['name', 'role']);
-//   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-//   const result = await userService.queryUsers(filter, options);
-//   res.send(result);
-// });
+const getDocs = catchAsync(async (req, res) => {
+  const result = await docsService.getDocsByUserId(req.user.id);
+  res.send(result);
+});
 
 // const getUser = catchAsync(async (req, res) => {
 //   const user = await userService.getUserById(req.params.userId);
@@ -46,6 +50,7 @@ const askDoc = catchAsync(async (req, res) => {
 module.exports = {
   createDoc,
   askDoc,
+  getDocs
   // getUsers,
   // getUser,
   // updateUser,
