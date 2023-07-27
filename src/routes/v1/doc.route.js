@@ -32,7 +32,7 @@ const router = express.Router();
 
 router
   .route('/new')
-  .post(auth('docs'), upload.single('file'), validate(docsValidation.createDoc), docsController.createDoc);
+  .post(auth('docs'), upload.array('file'), validate(docsValidation.createDoc), docsController.createDoc);
 
 router
   .route('/ask')
@@ -41,6 +41,10 @@ router
 router
   .route('/')
   .get(auth('getDocs'), docsController.getDocs);
+
+router
+  .route('/info')
+  .post(auth('getDocs'), validate(docsValidation.infoDoc), docsController.getInfo);
 
 
 module.exports = router;

@@ -5,7 +5,7 @@ const createDoc = {
   body: Joi.object().keys({
     title: Joi.string().required(),
   }),
-  file: Joi.any().required(),
+  files: Joi.array().required(),
 };
 
 const askDoc = {
@@ -15,7 +15,14 @@ const askDoc = {
   }),
 };
 
+const infoDoc = {
+  body: Joi.object().keys({
+    collection_id: Joi.string().required(),
+  }),
+};
+
 module.exports = {
   createDoc,
   askDoc,
+  infoDoc,
 };

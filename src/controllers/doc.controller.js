@@ -25,7 +25,19 @@ const askDoc = catchAsync(async (req, res) => {
 });
 
 const getDocs = catchAsync(async (req, res) => {
-  const result = await docsService.getDocsByUserId(req.user.id);
+  const { id } = req.user
+
+  const result = await docsService.getDocsByUserId(id);
+  res.send(result);
+});
+
+const getInfo = catchAsync(async (req, res) => {
+  const { collection_id } = req.body;
+  const { id } = req.user
+
+  const result = await docsService.getListDocsByUserId(id, collection_id);
+
+  // res.download(result);
   res.send(result);
 });
 
@@ -50,7 +62,8 @@ const getDocs = catchAsync(async (req, res) => {
 module.exports = {
   createDoc,
   askDoc,
-  getDocs
+  getDocs,
+  getInfo,
   // getUsers,
   // getUser,
   // updateUser,

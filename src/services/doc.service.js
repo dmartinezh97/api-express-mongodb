@@ -15,6 +15,7 @@ const { getUserPathWithCollection, getUserIndexPathWithCollection } = require('.
 const dotenv = require('dotenv');
 const { docsTypes } = require('../config/docs');
 const { convertirTituloASlug } = require('../utils/stringUtils');
+const fs = require('fs');
 
 dotenv.config();
 
@@ -36,7 +37,7 @@ const createDocPDF = async (user_id, title) => {
     const rawDocs = await directoryLoader.load();
 
     const textSplitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000, chunkOverlap: 200,
+      chunkSize: 1000, chunkOverlap: 200,
     });
 
     const docs = await textSplitter.splitDocuments(rawDocs);
@@ -71,7 +72,7 @@ const askPDF = async (user_id, collection_name, question, mode, initial_prompt) 
   try {
     const embeddings = new OpenAIEmbeddings();
 
-    
+
     // Cargar los vectores desde el mismo directorio
     const pathUserIndex = getUserIndexPathWithCollection(user_id, collection_name)
     const loadedVectorStore = await HNSWLib.load(pathUserIndex, embeddings);
@@ -83,7 +84,7 @@ const askPDF = async (user_id, collection_name, question, mode, initial_prompt) 
     const response = await chain.call({
       question: question, chat_history: [],
     })
-      
+
     // // OpenAI recommends replacing newlines with spaces for best results
     // const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
@@ -106,11 +107,49 @@ const askPDF = async (user_id, collection_name, question, mode, initial_prompt) 
  * @returns {Promise<User>}
  */
 const getDocsByUserId = async (id) => {
-  return Doc.find({ user: id })
+  return await Doc.find({ user: id })
+};
+
+/**
+ * Get list array documents by user id
+ * @param {ObjectId} id
+ * @returns {Promise<User>}
+ */
+const getListDocsByUserId = async (id, collection_id) => {
+  const documento = await Doc.findOne({ user: id, _id: collection_id })
+  if (!documento) throw new ApiError(httpStatus.NOT_FOUND, 'Colección no encontrada')
+
+  const pathUserIndex = getUserPathWithCollection(id, documento.collection_name)
+
+  //Comprobar si existe el directorio
+  if (!fs.existsSync(pathUserIndex)) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'No existe el directorio')
+  }
+
+  //Leer los ficheros del directorio y retornarlos en un array, convertidos en binario
+  const files = fs.readdirSync(pathUserIndex)
+  const listDocs = files.map(file => {
+    return fs.readFileSync(pathUserIndex + '/' + file, 'binary')
+  })
+
+
+  // fs.readdir(pathUserIndex, (err, files) => {
+  //   if (err) throw err;
+
+  //   for (const file of files) {
+  //     // fs.unlink(pathUserIndex + '/' + file, err => {
+  //     //   if (err) throw err;
+  //     // });
+  //   }
+  // })
+
+  return listDocs
+  // return Doc.find({ user: id })
 };
 
 module.exports = {
   createDocPDF,
   askPDF,
   getDocsByUserId,
+  getListDocsByUserId
 };
